@@ -168,7 +168,7 @@ food-count
 food-count
 0
 100
-84.0
+80.0
 1
 1
 NIL
@@ -306,7 +306,7 @@ max-energy
 max-energy
 50
 300
-120.0
+112.0
 2
 1
 NIL
@@ -727,7 +727,7 @@ NetLogo 6.2.0
       <value value="true"/>
     </enumeratedValueSet>
   </experiment>
-  <experiment name="mutations_off" repetitions="1" runMetricsEveryStep="false">
+  <experiment name="no_mutations" repetitions="1" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
     <timeLimit steps="100000"/>
@@ -744,25 +744,6 @@ NetLogo 6.2.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="mutations?">
       <value value="false"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="mutations_on" repetitions="1" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="100000"/>
-    <metric>count animals</metric>
-    <enumeratedValueSet variable="initial-speed">
-      <value value="1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-energy">
-      <value value="120"/>
-    </enumeratedValueSet>
-    <steppedValueSet variable="food-count" first="30" step="2" last="100"/>
-    <enumeratedValueSet variable="animal-count">
-      <value value="80"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="mutations?">
-      <value value="true"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
