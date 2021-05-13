@@ -1,34 +1,53 @@
+;; Simulating the Natural Selection of Speed in a Population of Animals
+;; Author: Chris Francis, 18110041
+
+;; breeds
 breed [foods food]
 breed [animals animal]
-animals-own [energy speed sense collected-food cost]
+
+;; animals-own variables
+animals-own [energy speed collected-food cost]
 
 to setup
+  ;; command to setup the simulation
+
+  ;; clear everything
   clear-all
-  clear-output
-  ask patches [ set pcolor white ]  ;; create a blank background
+  ;; create a white background
+  ask patches [ set pcolor white ]
+  ;; create animals
   make-animals
+  ;; create food
   make-foods
   reset-ticks
 end
 
 to make-animals
+  ;; command to create animals
+
   create-animals animal-count [
-    ;; ifelse random 100 > 50
-    ;;[setxy random-xcor (one-of list max-pycor min-pycor)]
-    ;;[setxy (one-of list max-pxcor min-pxcor) random-ycor]
+    ;; set coordinates randomly
     setxy random-xcor random-ycor
-    ;;facexy 0 0
     set color green
+    ;; max-energy is a global variable that denotes
+    ;; the maximum energy an animal can have. The energy
+    ;; of each surviving/created animal is set to max-energy
+    ;; at the start of each generation.
     set energy max-energy
+    ;; initial-speed is the value of speed that all the
+    ;; animals have at the start of the simulation.
     set speed initial-speed
-    set sense 1
     set collected-food 0
+    ;; cost = speed^2
     set cost speed * speed
   ]
 end
 
 to make-foods
+  ;; command to create food
+
   create-foods food-count[
+    ;; set coordinates randomly
     setxy random-xcor random-ycor
     set color cyan
     set shape "dot"
@@ -36,48 +55,57 @@ to make-foods
 end
 
 to go
+  ;; go command for simulation
+
+  ;; command to make animals move and eat food if found
   move
   tick
+  ;; end the generation after every 240 ticks
   if ((remainder ticks 240) = 0)[
-    end-day
+    end-generation
   ]
 end
 
 to move
+  ;; command to make animals move and eat food if found
+
   ask animals[
+    ;; animals can move only if they have energy > 0
     if energy > 0 [
+      ;; move a distance equal to speed
       fd speed
+      ;; turn to a random direction
       facexy random-xcor random-ycor
+      ;; reduce energy by cost
       set energy energy - cost
     ]
-    let foods-found foods in-radius sense
+    ;; food items in radius 1
+    let foods-found foods in-radius 1
     if (count foods-found > 0) [
+      ;; eat the food items in radius 1 by increasing
+      ;; collected-food of the animal and making the food items die
       set collected-food collected-food + count foods-found
       ask foods-found [ die ]
     ]
   ]
 end
 
-to end-day
+to end-generation
+  ;; command to perform end of the generation tasks
+
   ask animals[
     (ifelse
+      ;; animals with collected-food = 0 will die
       collected-food = 0[
         die
       ]
+      ;; animals with collected-food = 1 will survive
       collected-food = 1[
-        ;;ifelse random 100 > 50
-        ;;[setxy random-xcor (one-of list max-pycor min-pycor)]
-        ;;[setxy (one-of list max-pxcor min-pxcor) random-ycor]
-        ;; facexy 0 0
         setxy random-xcor random-ycor
         set energy max-energy
         set collected-food 0
       ]
-      [
-        ;;ifelse random 100 > 50
-        ;;[setxy random-xcor (one-of list max-pycor min-pycor)]
-        ;;[setxy (one-of list max-pxcor min-pxcor) random-ycor]
-        ;;facexy 0 0
+      [ ;; animals with collected-food > 1 will survive and reproduce
         setxy random-xcor random-ycor
         reproduce
         set energy max-energy
@@ -85,32 +113,41 @@ to end-day
       ]
     )
   ]
+  ;; removing the remaining food
   ask foods[die]
+  ;; creating new food for next generation
   make-foods
 end
 
 to reproduce
+  ;; command to make animals reproduce with a probability of mutations
+
+  ;; speed of the animal that called the command
   let parent-speed speed
+  ;; create collected-food - 1 new animals
   hatch (collected-food - 1)[
-    ;;ifelse random 100 > 50
-    ;;[setxy random-xcor (one-of list max-pycor min-pycor)]
-    ;;[setxy (one-of list max-pxcor min-pxcor) random-ycor]
-    ;;facexy 0 0
     setxy random-xcor random-ycor
     set energy max-energy
+    ;; if mutations are on, a mutation takes place with 50% probability
     ifelse mutations? and random 100 > 50 [
+      ;; the speed of the new animal increases or decreases by a random value less than 0.1
       set speed parent-speed - 0.1 + random-float 0.2
     ]
     [
+      ;; else no mutation
       set speed parent-speed
     ]
-    ifelse speed > initial-speed
-      [set color red]
-      [set color yellow]
-    if speed = initial-speed
-      [set color green]
+    (ifelse
+      ;; if speed is more than the initial-speed of the simulation, make the turtle red
+      speed > initial-speed
+        [set color red]
+      ;; if speed is less than the initial-speed of the simulation, make the turtle yellow
+      speed < initial-speed
+        [set color yellow]
+      ;; if speed is equal to the initial-speed of the simulation, make the turtle green
+        [set color green]
+    )
     set cost speed * speed
-    set sense 1
     set collected-food 0
   ]
 end
@@ -168,7 +205,7 @@ food-count
 food-count
 0
 100
-84.0
+80.0
 1
 1
 NIL
@@ -211,7 +248,7 @@ MONITOR
 257
 1054
 302
-population
+population size of animals
 count animals
 2
 1
@@ -222,7 +259,7 @@ PLOT
 306
 1053
 470
-population vs time
+population size vs time
 time
 population
 0.0
@@ -240,7 +277,7 @@ MONITOR
 28
 1052
 73
-Avg speed
+Average speed of animals
 sum [speed] of animals / count animals
 4
 1
@@ -251,7 +288,7 @@ PLOT
 287
 272
 481
-Speed Distribution
+Speed Distribution of Animals
 speed
 no. of animals
 0.0
@@ -284,7 +321,7 @@ PLOT
 77
 1050
 233
-avg speed vs time
+avg speed of animals vs time
 time
 avg speed
 0.0
@@ -323,42 +360,75 @@ mutations?
 1
 -1000
 
+BUTTON
+165
+240
+235
+273
+go-once
+go
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+0
+
 @#$#@#$#@
-## WHAT IS IT?
+# Simulating the Natural Selection of Speed in a Population of Animals
 
-(a general understanding of what the model is trying to show or explain)
+Chris Francis, 18110041
 
-## HOW IT WORKS
+This model was created as a part of the ES 491: Modeling and Simulation of Complex Systems course offered by Prof. Antonio Fonseca in semester 2 of the academic year 2020-21 at IIT Gandhinagar.
 
-(what rules the agents use to create the overall behavior of the model)
+## 1. Purpose and patterns
+The purpose of this model is to study the evolution of the trait ‘speed’ through natural selection in a population of animals living in a simple environment with finite food resources.  Studying the emergence of a value for the average speed of the population and investigating factors that could influence it are also important goals of this model. The model investigates if there are patterns in the way the emergent value of speed changes with various factors like food count, initial speed, maximum energy etc.
 
-## HOW TO USE IT
+## 2. Entities, State Variables, and Scales
+There are two types of agents in this model - animals and food. Both of them are turtle breeds. Food cannot move in the environment and spawns at random locations at the start of each generation. The number of food that spawns at the start of a generation is given by the global variable `food-count`. Animals can move around in the environment and eat food. They spawn at random locations at the start of a generation. However, the number of animals that spawn at the start of a generation is not fixed. At the end of each generation, an animal can die, survive or survive and reproduce depending on the number of food it collected in that generation. The number of animals that spawn in the first generation is given by the global variable `animal-count`. Food have the following variables: `xcor`, `ycor`, `size`, `shape`, `color`. Animals have the following variables: `xcor`, `ycor`,`size`, `shape`, `color`, `energy` (keeps track of the energy of an animal), `speed`(distance that the animal can move in a time step),  `cost`(amount of energy used in a time step for moving), `collected-food`(keeps track of the number of food collected by the animal in the current generation). 
 
-(how to use the model, including a description of each of the items in the Interface tab)
+The environment consists of all patches.  The patches make up a square grid world of 33 x 33 patches that wraps around both horizontally and vertically.
 
-## THINGS TO NOTICE
+One generation is 240 time steps long.
 
-(suggested things for the user to notice while running the model)
+## 3. Process Overview and Scheduling
+There are multiple processes in the model as explained below. Every 240 time steps is called a generation. At the start of each generation, food and animals spawn at random locations. During a generation, animals move around in the environment. In each time step, an animal moves a distance equal to its `speed` variable and its `energy` decreases by an amount equal to its `cost` variable. If it finds a food within a radius of 1 unit, it eats the food. When a food is eaten by an animal, it dies and the `collected-food` variable of the animal increases by 1. At the end of a generation, an animal dies if its `collected-food` variable is 0 and survives if its `collected-food` variable is greater than 0. An animal that survives creates (`collected-food - 1`) new animals by reproducing. When an animal reproduces, the new animal has a 50% chance of having a mutation if `mutations?` are turned on(0% chance if `mutations?` are turned off). A mutation may cause its `speed` to increase or decrease by a number less than 0.1. The color of the new animal is set to red, yellow or green depending on whether its speed is greater, lower or equal to  `initial-speed`. The `cost` also increases or decreases according to the relation between `cost` and `speed`(`cost`=`speed`^2). The `energy` and `collected-food` of the surviving animal is reset to `max-energy` and 0 respectively. The remaining food is cleared and the next generation begins. 
 
-## THINGS TO TRY
+## 4. Design Concepts
+Basic principles: The basic topic of this model is how natural selection of the observable trait speed leads to the emergence of a value of speed for a populatioin of animals living in an environment with finite food resources.
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+Emergence: The model's primary emergent output is the value of average speed attained by the system over several generations.
 
-## EXTENDING THE MODEL
+Adaptive behavior: The adaptive behavior of animals is choice of speed: the decision of whether to increase or decrease speed based on cost-speed tradeoff. However, this decision is not taken by individual animals. Animals have no control over the speed mutations and the choice of a speed is made by the population as a whole depending on the environment and other factors.
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+Objective: There is no well-defined objective for the animals and no objectives at all for food. Animals have an indirect objective of surviving and reproducing as much as possible, which is why they eat any food item that is within radius 1 from them.
 
-## NETLOGO FEATURES
+Prediction: The prediction is that natural selection will lead to a particular value of speed being selected preferentially over others regardless of the initial speed the animals started with. However this speed can depend on factors like food-count or max-energy.
 
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+Interaction: The animals interact with each other only indirectly via competition for food: an animal cannot eat a food that is already eaten by another animal. The movement of animals is random, so there is no hierarchy in this competition except for advantages caused by the speed value. 
 
-## RELATED MODELS
+Stochasticity: The initial state of the model is stochastic: the locations of animals and food are set randomly. Stochasticity is thus used to simulate an environment where the location of an animal does not cause a serious disadvantage or advantage. 
 
-(models in the NetLogo Models Library and elsewhere which are of related interest)
+Whether a mutation takes place or not is also stochastic when mutations are turned on since you have a 50% chance of a mutation in that case. The degree of mutation is also stochastic since the change in speed can lie between parent-speed - 0.1 and parent-speed + 0.1. 
+
+Observation: The View shows the location of each animal and food in the environment. The colors of the animals also show us whether its speed is higher, lower or equal to the initial speed of the animals when the simulation started. Graphs show the average speed of animals versus time, population size(count of animals) versus time and speed distribution of animals. The average speed of animals and the population size(count of animals) is also displayed using monitors.
+
+## 5. Initialization
+The environment(consisting of all patches) is initialized to be white when model starts. Animals and food are initialized by creating animal-count and food-count of them respectively. The locations of animals and food are chosen randomly and both are initialized with the default size. Animals are initialized with the default shape and green color while food are initialized with dot shape and cyan color. The energy, speed, cost and collected-food variables of animals are initialized as max-energy, initial-speed, speed^2 and 0 respectively. 
+
+## 6. Input Data
+The model has no input data.
+
+## 7. Submodels
+
+The make-animals and make-food submodels simply create animals and food as mentioned before. The move submodel handles the movement of animals and makes the animals eat any food within a radius of 1 unit from them. The end-generation submodel is used to perform the tasks required to be done at the end of a generation like handling the death, survival and reproduction of animals as well as clearing the remaining food and creating food for the next generation. The reproduce submodel handles the creation of new animals by an existing animal and also handles the mutations.
 
 ## CREDITS AND REFERENCES
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+Wilensky, U. (1999). NetLogo. [http://ccl.northwestern.edu/netlogo/](http://ccl.northwestern.edu/netlogo/). Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL. 
 @#$#@#$#@
 default
 true
